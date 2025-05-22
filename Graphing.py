@@ -8,8 +8,10 @@ import utime as time
 #===Temperature===
 from dht import DHT11
 TemHum = DHT11(machine.Pin(19))
+
 #===Voltage===
 ADCPin = ADC(Pin(15,))
+
 #==Hall==
 #Hall = esp32.raw_temperature() #temp between 100-150, not linear
 
@@ -22,7 +24,6 @@ Press = 0
 OldVolt=None
 OldTemp=None
 OldHumi=None
-
 TempF = False
 
 #===Screen===
@@ -50,7 +51,6 @@ async def Indicator():
 #===SensorReadings===
 async def Sensor_Readings():
     await Indicator()
-    global OldTemp, OldHumi, OldVolt
     #make new readings (if possible)
     try:
         #dht11
