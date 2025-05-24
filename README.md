@@ -16,7 +16,7 @@ There's a charming secrecy to the kind of communication you can't see.
 I look forward to hearing it, to learning how it works on a deeper level.
 
 That said, Today's focus MUST be nutrition - I can't invent or create without fuel.
-
+-
 PS; I've used new jumper wires (the type that sit flat against the breadboard) to properly connect pins-to-micro. I worry this inspiration won't resume once I recover... Consistency is key.
 
 --
