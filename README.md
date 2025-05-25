@@ -40,9 +40,14 @@ PSS: Present bill of materials, minus postage;
 Making 24 quid?
 30 with postage no-doubt...
 
+
 0414/25/05/25
+-
+
 Every example of a rotary encoder I've found illustrates a 'pulse' as a two-button press.
 It's taken me this long to realise i don't need state tables (confusing), or hexcode(VERY confusing).
 Only two states matter; A-Down, or B-Down.
 I didn't sleep much so I could be mad.
 Rotary.py to follow.
+
+(PS, I've just learned that dashes with a blank line cause an underline here. Edited for correct emphasis- log dates.)
