@@ -8,7 +8,7 @@ Micropython and C++ experiments on my ailing PicoW and 'brand new' ESP32(clone),
 Personal issues related to burnout and overproduction; Managed to open a bag of rotary encoders and learn about their pins.
 Will hopefully Put those to use in my next test projests and definitions.
 
---
+
 
 0451/24/05/2025
 -
@@ -43,6 +43,7 @@ PSS: Present bill of materials, minus postage;
 
 Making 24 quid?
 30 with postage no-doubt...
+
 
 
 0414/25/05/25
