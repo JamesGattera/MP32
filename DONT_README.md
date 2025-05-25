@@ -56,3 +56,12 @@ I didn't sleep much so I could be mad.
 Rotary.py to follow.
 
 (PS, I've just learned that dashes with a blank line cause an underline here. Edited for correct emphasis- log dates.)
+
+0738/25/05/2025
+-
+
+GOT IT WORKING
+It still bounces like a MF but it works well enough for what I need.. I might use the button to 'lock' position once i get there to avoid slippage maybe??
+
+for now, Imma rest
+It's plagued me for days and I did it!
