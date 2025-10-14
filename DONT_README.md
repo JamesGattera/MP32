@@ -72,3 +72,4 @@ It's plagued me for days and I did it!
 Yesterday, and over the last few days, I've managed to rebuild a rotary script and design a boot archetecture that doesn't confuse me too much
 Credit to writers of two Lib files;; Oled and TEA
 
+At this stage, I've managed to build a working radio using the ESP32/oled and a TEA module - Limitations right now are the bouncy rotary script, and the fact the TEA module needs earphones - - output is only 3.5mil jack
