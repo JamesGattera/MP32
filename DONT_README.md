@@ -65,3 +65,10 @@ It still bounces like a MF but it works well enough for what I need.. I might us
 
 for now, Imma rest
 It's plagued me for days and I did it!
+
+2004/14/10/25
+-
+
+Yesterday, and over the last few days, I've managed to rebuild a rotary script and design a boot archetecture that doesn't confuse me too much
+Credit to writers of two Lib files;; Oled and TEA
+
