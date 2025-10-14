@@ -2,7 +2,7 @@
 Micropython and C++ experiments on my ailing PicoW and 'brand new' ESP32(clone), it has an OLED screen :D
 
 
-17:54/23/05/25
+17:54/23/05/2025
 -
 
 Personal issues related to burnout and overproduction; Managed to open a bag of rotary encoders and learn about their pins.
@@ -46,7 +46,7 @@ Making 24 quid?
 
 
 
-0414/25/05/25
+0414/25/05/2025
 -
 
 Every example of a rotary encoder I've found illustrates a 'pulse' as a two-button press.
@@ -66,7 +66,7 @@ It still bounces like a MF but it works well enough for what I need.. I might us
 for now, Imma rest
 It's plagued me for days and I did it!
 
-2004/14/10/25
+2004/14/10/2025
 -
 
 Yesterday, and over the last few days, I've managed to rebuild a rotary script and design a boot archetecture that doesn't confuse me too much
