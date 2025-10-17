@@ -106,33 +106,38 @@ async def main():
 
     # Main operational loop
     while True:
-        changed = tuner.update_frequency()
-        redraw = changed
-        #process ALL pending events (drain bucket)
-        while True:
-            try:
-                event, value = await asyncio.wait_for(hal.next_event(),0)
-            except (TypeError):
-                break
+        
+        
+        
+        """Display Triggers ::"""
+        redraw = False #defined display value
+        #Drain Event Queue;;
+        while not hal._update_queue.empty():
+            event, value = await hal.next_event()
             if event == "CoarseToggle":
                 redraw = True
+                
+        #Check For Encoder Change;;
+        if tuner.update_frequency():
+            redraw = True
+        
         if redraw:
             tuner.draw_display()
 
-        # Soft “screensaver” — sleeps OLED after inactivity
+            
+            
+        """ScreenSaver :: sleeps OLED after inactivity"""
         inactive_ms = time.ticks_diff(time.ticks_ms(), hal._last_activity)
         if inactive_ms > hal._inactivity_limit_ms:
-            for blinks in range(2):
+            for _ in range(2):
                 screen.fill(0)
-                screen.text("zZz", 105, 55)
+                screen.text("z", 121,56)
                 screen.show()
-            
-                "stylistic blink"
-                await asyncio.sleep_ms(1000)
-                screen.fill(0)
-                screen.show()
-                await asyncio.sleep_ms(1000)
-            
+                await asyncio.sleep_ms(1100)
+                #"stylistic blink"
+                #screen.fill(0)
+                #screen.show()
+                #await asyncio.sleep_ms(900)
             
         await asyncio.sleep_ms(100)
 # ───────────────────────────────────────────────────────────────
@@ -142,7 +147,8 @@ Run directly:
     import uasyncio
     uasyncio.run(main())
 
-This pattern guarantees safe coroutine cleanup on soft reboot.
+semi-safe reboot
 """
 if __name__ == "__main__":
     asyncio.run(main())
+
