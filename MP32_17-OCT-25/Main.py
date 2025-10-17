@@ -6,13 +6,7 @@ SoftVers = "17'OCT'25"
 ───────────────────────────────────────────────────────────────
 TOP-LEVEL RUNTIME CONTROL LOOP
 
-Bridges the *Logic Layer* and the *Hardware Abstraction Layer (HAL)*.
-
-The HAL listens to the real world — encoders, buttons, toggles.
-This file orchestrates what happens next:
-    The Radio sings.
-    The Screen smiles.
-    The System breathes.
+Bridges the *Logic Layer* and the *Hardware Abstraction Layer (HAL)*
 
 Design Pattern:
     boot.py					#Boot
