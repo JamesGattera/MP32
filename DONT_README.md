@@ -73,3 +73,21 @@ Yesterday, and over the last few days, I've managed to rebuild a rotary script a
 Credit to writers of two Lib files;; Oled and TEA
 
 At this stage, I've managed to build a working radio using the ESP32/oled and a TEA module - Limitations right now are the bouncy rotary script, and the fact the TEA module needs earphones - - output is only 3.5mil jack
+
+
+2014/17/10/2025
+-
+
+Crikey, 
+Learning VScode/MicroPico/ESP32 has been an uphill struggle;
+Multiple days of rewriting the same code because saves and uploads are NOT the same thing
+
+I've gotten to a point where I've learned a lot about archetecture;;
+uAsyncIO, Finite State Machines, Booleans, ISRs, limitations in micropython modules, and I couldn't learn this half as fast without ChatGpt Lying to me along the way (not an endorsement)
+
+I'll throw up the present version when I'm CERTAIN my developed style and patterns are mostly consistent across all files;;
+Boot, Globals, BootScreenIndicator, Main, HardwareLayer
+
+Five distinct modules.
+
+What. A. Week.
