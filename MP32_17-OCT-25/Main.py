@@ -14,15 +14,16 @@ This file orchestrates what happens next:
     The Screen smiles.
     The System breathes.
 
-Philosophy:
-    HAL listens.
-    Main decides.
-    Radio sings.
-    Screen smiles.
+Design Pattern:
+    boot.py					#Boot
+    BootScreenIndicator.py	#Video
+    Main.py 				#Runtime
+    HardwareLayer.py 		#Inputs
+    Radio.py				#Audio
 
 To-Do::
-    - Integrate proper async pattern for true non-blocking updates
-    - Replace prints with status overlay or event logging (min Nov'25)
+    - Integrate async pattern for more non-blocking
+    - Replace prints(min(Nov'25))
 """
 
 # ───────────────────────────────────────────────────────────────
@@ -48,17 +49,15 @@ class RadioTuner:
     Holds all user-visible logic — frequency, encoder position,
     display updates, and radio control.
     """
-
     def __init__(self):
         # Create encoder instance (using HAL’s internal sub-class)
-        self.encoder = hal.Inputs.Encoder(left_pin=14, right_pin=26)
+        self.encoder = hal.Inputs.EncoderPins
         self.encoder.enable_irq()
-
+        
         # Local state cache
         self.freq_tenths = int(FM_DEFAULT * 10)
         self.last_pos = self.encoder.read()
         self.freq = FM_DEFAULT
-
     # ───────────────────────────────────────────────────────────
     def update_frequency(self):
         """
@@ -98,8 +97,6 @@ class RadioTuner:
         mode = "Coarse" if hal.CoarseEncoderStep else "Fine"
         screen.text(f"Mode: {mode}", 0, 0)
         screen.show()
-
-
 # ───────────────────────────────────────────────────────────────
 # CORE RUNTIME
 async def main():
@@ -116,19 +113,34 @@ async def main():
     # Main operational loop
     while True:
         changed = tuner.update_frequency()
-        if changed:
+        redraw = changed
+        #process ALL pending events (drain bucket)
+        while True:
+            try:
+                event, value = await asyncio.wait_for(hal.next_event(),0)
+            except (TypeError):
+                break
+            if event == "CoarseToggle":
+                redraw = True
+        if redraw:
             tuner.draw_display()
 
         # Soft “screensaver” — sleeps OLED after inactivity
         inactive_ms = time.ticks_diff(time.ticks_ms(), hal._last_activity)
         if inactive_ms > hal._inactivity_limit_ms:
-            screen.fill(0)
-            screen.text("zZz", 58, 28)
-            screen.show()
-
+            for blinks in range(2):
+                screen.fill(0)
+                screen.text("zZz", 105, 55)
+                screen.show()
+            
+                "stylistic blink"
+                await asyncio.sleep_ms(1000)
+                screen.fill(0)
+                screen.show()
+                await asyncio.sleep_ms(1000)
+            
+            
         await asyncio.sleep_ms(100)
-
-
 # ───────────────────────────────────────────────────────────────
 # ENTRY POINT
 """
