@@ -17,7 +17,7 @@ Roles:
     - Run a brief startup animation (BootScreenIndicator)
     - Hand off control to Main.py (core logic)
 
-If something breaks here - nothing else boots.
+If something breaks here - Nothing else boots
 """
 # ───────────────────────────────────────────────────────────────
 # CORE IMPORTS
@@ -28,9 +28,9 @@ import uasyncio as asyncio
 # OPTIONAL VISUAL STARTUP (Boot Art)
 """
 BootScreenIndicator — tiny OLED animation.
-Gives the illusion of “boot time” while hardware settles.
+Gives the illusion of “boot time” while hardware 'loads'
 I like that:
-    Art at the start.
+    Art at the start
 """
 try:
     import BootScreenIndicator as BSI
@@ -50,9 +50,10 @@ Allows future “headless” recovery or debugging.
 """
 try:
     import Main
-    asyncio.run(Main.main())
+    asyncio.create_task(Main.main())
+    asyncio.get_event_loop().run_forever()
     # Reload in case of soft reboot or cached copy
     sys.modules.pop("Main", None)
     import Main
-except:
-    print("Boot.py :: NoMain")
+except(TypeError):
+    print("Boot.py :: NoMain", TypeError)
