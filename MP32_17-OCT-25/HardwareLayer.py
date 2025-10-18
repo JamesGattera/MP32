@@ -306,7 +306,7 @@ class HAL:
                 self.irq_enabled = True
 
             def read(self):
-                """Current absolute encoder position"""
+                """Current 'absolute' encoder position"""
                 return self.position
 
 
