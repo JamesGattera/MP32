@@ -36,6 +36,8 @@ from HardwareLayer import hal
 from lib import ssd1306
 # Radio Module (TEA5767 — I2C FM Receiver)
 from lib.TEA5767 import Radio
+#
+asyncio.sleep_ms(10)
 # ───────────────────────────────────────────────────────────────
 # I2C BUS INITIALISATION
 """
@@ -50,6 +52,7 @@ try:
     I2C_SCL = 22
     I2C_FREQ = 400_000  # underscore is comma
     i2c = I2C(0, scl=Pin(I2C_SCL), sda=Pin(I2C_SDA), freq=I2C_FREQ)
+    asyncio.sleep_ms(10)
 except Exception as e:
     print("Globals :: I2C Fail e>", e)
     i2c = None
@@ -65,6 +68,7 @@ try:
     screen.text("Display Booting...", 0, 0)
     print(		"Display Booting...")
     screen.show()
+    asyncio.sleep_ms(10)
 except Exception as e:
     print("Globals :: OLED Init Failed e>", e)
     screen = None
@@ -77,12 +81,13 @@ FM Radio via TEA5767
 """
 try:
     radio = Radio(i2c)
+    asyncio.sleep_ms(10)
     try:
         radio.set_frequency(100.0)
     except Exception as e:
         print("Globals :: Radio Freq Fail e>", e)
     try:
-        screen.text("Radio Booting...", 0, 0)
+        screen.text("Radio Booting...", 0, 8)
         print(		"Radio Booting...")
         screen.show()
     except Exception as e:
@@ -90,6 +95,7 @@ try:
 except Exception as e:
     print("Globals :: Radio Init Failed e>", e)
     radio = None
+asyncio.sleep_ms(10)
 # ───────────────────────────────────────────────────────────────
 # CONVENIENCE IMPORTS
 """
@@ -106,7 +112,7 @@ Optional, display boot diagnostics and versioning info
 For verifying startup chain integrity
 Could be fun for a Pip-Boy-Style startup
 """
-async def diagnostics(DIAGNOSTIC_HOLD = 1) : # 1-second default for debug
+async def diagnostics(DIAGNOSTIC_HOLD = 1, summary = False): # 1-second default for debug
     print("─────── SYSTEM DIAGNOSTICS ───────")
     print(f"SoftVers:	{SoftVers}")
     print(f"I2C: 		{i2c}")
@@ -126,13 +132,33 @@ async def diagnostics(DIAGNOSTIC_HOLD = 1) : # 1-second default for debug
             ("OLED ", screen), 
             ("RADIO", radio)
             ]:
-            msg = f"{name}:{'OK' if ok else 'FAIL'}"
-            screen.text(msg, 8, y)
-            y += 8 # smallest reasonable
+            msg = f"{name} : {'OK' if ok else 'FAIL'}"
+            screen.text(msg, 0, y)
+            y += 8 # smallest reasonable        
         screen.show()
-        await asyncio.sleep(DIAGNOSTIC_HOLD) #i got mad....
-
+        
+        # :: Creative Lisence ::
+        # numerical hold-open count-down
+        # three-digit, bottom right corner
+        Holdopen	= 5.0
+        cornerX 	= 106 #106
+        cornerY 	= 57 #57
+        for X in range(Holdopen, 0, -1):
+            screen.text(str(X), 105, 57) # 105, 57
+            Holdopen -= 1
+            print(str(X))
+            screen.show()
+            await asyncio.sleep(1.5)
+            #clears old digits (T-Left, B-Right, B-Left, B-Right, Colour)
+            screen.fill_rect(cornerX, cornerY, 24, 8, 0)
+            
+        screen.fill(0)
+        screen.show()
+        await asyncio.sleep_ms(10)
 # ───────────────────────────────────────────────────────────────
 # ENTRYPOINT — optional self-test
 if __name__ == "__main__":
-    asyncio.run(diagnostics())
+    try:
+        asyncio.run(diagnostics())
+    except Exception as e:
+        print("Diagnostics error:", e)
