@@ -4,77 +4,70 @@ Globals.py
 SoftVers = "17'OCT'25"
 """
 ───────────────────────────────────────────────────────────────
-UNIVERSAL SETTINGS & GLOBAL OBJECT REGISTER
+"UNIVERSAL SETTINGS & GLOBAL OBJECTS"
+ - "Everything Everywhere"
+ - "Mise En Place"
 
-“Everything Everywhere — but kept tidy.”
-
-Acts as the *shared layer* between logic, hardware, and interface.
-The goal is **not** to centralise code — but to centralise *clarity*.
+Shared layer between logic, hardware, and interface
+The goal is centralise a cheatsheet/reference
 
 Philosophy:
-    ▪ HAL owns the hardware
-    ▪ Globals gives out the keys
-    ▪ Nothing imports each other blindly
-
-    Globals imports HAL (hardware side)
-    Logic imports Globals (software side)
-    → avoids circular recursion
-
+    - HAL covers hardware
+    - Globals covers convenience
+    - Main covers both
+    Globals imports HAL (hardware)
+    Logic imports Globals (software)
+        *******avoids circular recursion
 To-Do::
-    ▪ Migrate to config.toml for user-tweakable defaults
-    ▪ Add async-safe shared variables (e.g. event flags)
-    ▪ Keep imports lazy — microcontrollers dislike fat boots
+    - investigate rumoured "config.toml" tweakable defaults
+    - add async-safe variables/flags/debug messages
+    - keep imports light - apparently "microcontrollers dislike fat boots"
 """
-
 # ───────────────────────────────────────────────────────────────
 # CORE IMPORTS
 from machine import Pin, I2C
 import uasyncio as asyncio
 import utime as time
-
 # ───────────────────────────────────────────────────────────────
 # HARDWARE IMPORTS
-# These stay lightweight and abstract — *not logic-heavy*
+# Stay lightweight and abstract, *not logic-heavy*
 from HardwareLayer import hal
-
 # Display Driver (SSD1306 — I2C)
 from lib import ssd1306
 # Radio Module (TEA5767 — I2C FM Receiver)
 from lib.TEA5767 import Radio
-
-
 # ───────────────────────────────────────────────────────────────
 # I2C BUS INITIALISATION
 """
-Define universal I²C bus — both the display and radio ride on this.
-Pins are flexible; adjust here for your board variant.
+Define universal I2C bus
+    both the display and radio ride on this
+    (all I2C in future)
+I/O pins are flexible;
+    adjust here for board variant
 """
 try:
     I2C_SDA = 21
     I2C_SCL = 22
-    I2C_FREQ = 400_000  # standard fast-mode
+    I2C_FREQ = 400_000  # underscore is comma
     i2c = I2C(0, scl=Pin(I2C_SCL), sda=Pin(I2C_SDA), freq=I2C_FREQ)
 except Exception as e:
-    print("Globals :: I2C Init Failed →", e)
+    print("Globals :: I2C Fail e>", e)
     i2c = None
-
-
 # ───────────────────────────────────────────────────────────────
 # DISPLAY HANDLER
 """
-The OLED Screen — small but mighty.
-If missing, system falls back gracefully.
+OLED Screen
+If missing, system prints E.
 """
 try:
     screen = ssd1306.SSD1306_I2C(128, 64, i2c)
     screen.fill(0)
-    screen.text("Booting...", 20, 30)
+    screen.text("Display Booting...", 0, 0)
+    print(		"Display Booting...")
     screen.show()
 except Exception as e:
-    print("Globals :: OLED Init Failed →", e)
+    print("Globals :: OLED Init Failed e>", e)
     screen = None
-
-
 # ───────────────────────────────────────────────────────────────
 # RADIO DRIVER
 """
@@ -84,55 +77,62 @@ FM Radio via TEA5767
 """
 try:
     radio = Radio(i2c)
-    radio.set_frequency(100.0)
+    try:
+        radio.set_frequency(100.0)
+    except Exception as e:
+        print("Globals :: Radio Freq Fail e>", e)
+    try:
+        screen.text("Radio Booting...", 0, 0)
+        print(		"Radio Booting...")
+        screen.show()
+    except Exception as e:
+        print("Radio :: No Screen")
 except Exception as e:
-    print("Globals :: Radio Init Failed →", e)
+    print("Globals :: Radio Init Failed e>", e)
     radio = None
-
-
 # ───────────────────────────────────────────────────────────────
 # CONVENIENCE IMPORTS
 """
-Expose common modules & shortcuts.
-Avoid importing hardware modules directly from random files.
+Exposes common modules & shortcuts
+Avoids importing hardware modules directly from random files
 """
 sleep = time.sleep
 Inputs = hal.Inputs
 CoarseEncoderStep = hal.CoarseEncoderStep
-
-
 # ───────────────────────────────────────────────────────────────
-# SYSTEM HEARTBEAT / DEBUG
+# SYSTEM HEALTH / DEBUG
 """
-Optional: displays boot diagnostics and versioning info.
-Useful for verifying startup chain integrity.
+Optional, display boot diagnostics and versioning info
+For verifying startup chain integrity
+Could be fun for a Pip-Boy-Style startup
 """
-def diagnostics():
+async def diagnostics(DIAGNOSTIC_HOLD = 1) : # 1-second default for debug
     print("─────── SYSTEM DIAGNOSTICS ───────")
-    print(f"SoftVers:{SoftVers}")
-    print(f"I2C: {i2c}")
-    print(f"OLED: {'OK' if screen else 'FAIL'}")
-    print(f"Radio: {'OK' if radio else 'FAIL'}")
-    print(f"HAL: {hal}")
-    print(f"Asyncio: {asyncio}")
+    print(f"SoftVers:	{SoftVers}")
+    print(f"I2C: 		{i2c}")
+    print(f"OLED: 		{'OK' if screen else 'FAIL'}")
+    print(f"Radio: 		{'OK' if radio else 'FAIL'}")
+    print(f"HAL: 		{hal}")
+    print(f"Asyncio: 	{asyncio}")
     print("──────────────────────────────────")
     if screen:
         screen.fill(0)
         screen.text("Diagnostics", 1, 0)
-        screen.text("SoftVers", 1, 8)
-        y = 16
+        screen.text(f"Soft.V {SoftVers}", 1, 9)
+        y = 18
         for name, ok in [
-            ("SoftVers", SoftVers),
-            ("I2C", i2c), 
-            ("OLED", screen), 
-            ("RADIO", radio)]:
-            msg = f"{name}: {'OK' if ok else 'FAIL'}"
-            screen.text(msg, 10, y)
-            y += 10
+            ("HAL  ", hal),
+            ("I2C  ", i2c), 
+            ("OLED ", screen), 
+            ("RADIO", radio)
+            ]:
+            msg = f"{name}:{'OK' if ok else 'FAIL'}"
+            screen.text(msg, 8, y)
+            y += 8 # smallest reasonable
         screen.show()
-
+        await asyncio.sleep(DIAGNOSTIC_HOLD) #i got mad....
 
 # ───────────────────────────────────────────────────────────────
 # ENTRYPOINT — optional self-test
 if __name__ == "__main__":
-    diagnostics()
+    asyncio.run(diagnostics())
