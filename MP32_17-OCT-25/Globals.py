@@ -112,7 +112,7 @@ Optional, display boot diagnostics and versioning info
 For verifying startup chain integrity
 Could be fun for a Pip-Boy-Style startup
 """
-async def diagnostics(DIAGNOSTIC_HOLD = 1, summary = False): # 1-second default for debug
+async def diagnostics(Holdopen = 1, summary = False): # 1-second default for debug
     print("─────── SYSTEM DIAGNOSTICS ───────")
     print(f"SoftVers:	{SoftVers}")
     print(f"I2C: 		{i2c}")
@@ -140,7 +140,6 @@ async def diagnostics(DIAGNOSTIC_HOLD = 1, summary = False): # 1-second default 
         # :: Creative Lisence ::
         # numerical hold-open count-down
         # three-digit, bottom right corner
-        Holdopen	= 5.0
         cornerX 	= 106 #106
         cornerY 	= 57 #57
         for X in range(Holdopen, 0, -1):
