@@ -140,16 +140,16 @@ async def diagnostics(Holdopen = 1, summary = False): # 1-second default for deb
         # :: Creative Lisence ::
         # numerical hold-open count-down
         # three-digit, bottom right corner
+        # Holdopen 	= 10
         cornerX 	= 106 #106
         cornerY 	= 57 #57
         for X in range(Holdopen, 0, -1):
-            screen.text(str(X), 105, 57) # 105, 57
-            Holdopen -= 1
-            print(str(X))
-            screen.show()
-            await asyncio.sleep(1.5)
             #clears old digits (T-Left, B-Right, B-Left, B-Right, Colour)
             screen.fill_rect(cornerX, cornerY, 24, 8, 0)
+            screen.text(str(X), 105, 57) # 105, 57
+            screen.show()
+            print(str(X))
+            await asyncio.sleep(1)
             
         screen.fill(0)
         screen.show()
