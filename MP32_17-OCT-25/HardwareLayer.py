@@ -7,7 +7,7 @@ Linebreak for copying lower;;
 
 # ───────────────────────────────────────────────────────────────
 STANDALONE HARDWARE ABSTRACTION LAYER (HAL)
-    One file to gather all physical 'touchpoints'
+    This file to gather all physical 'touchpoints'
     Buttons, encoders, toggles - the physical human-machine bridge.
 
 No dependency on .Globals - HAL is a STANDALONE MOD
@@ -15,22 +15,25 @@ No dependency on .Globals - HAL is a STANDALONE MOD
     
 "Logic lives above; electrons buzz below"
     This file lives in the in-between, 
-    translating mechanical clicks and electrical whispers into clean signals.
+    translating mechanical clicks
 
-# Yes, I stole it - but then coloured it in.
-    All comments, tinkering, testing, and style choices are mine; James :D
-
-        To-Do :: Remove/clean all prints when certain (min Nov'25)
-        To-Do :: Relearn *Args & **Kwargs
-        
+All editorial choices, layout, comments, tinkering, testing, and style choices are credit to me; 
+    James :D
+#
+    To-Do :: Remove/clean all prints when certain (min Nov'25)
+    To-Do :: Relearn *Args & **Kwargs
+    To-Do :: Adaptive/Adaptable Timeout Timer
+#        
         REMINDER :: IRQ handlers MUST be SMALL & LIGHT
+            No Prints, No internal Functions
+            RInstead;; Reference and signal external fuinctions
 """
-
 
 # IMPORTS
 from machine import Pin, I2C
 import utime as time
 import uasyncio as asyncio
+# DONT IMPORT .PY
 
 # ───────────────────────────────────────────────────────────────
 # HAL CORE
@@ -48,25 +51,28 @@ Returns;
 """
 class HAL:
 
-    def __init__(self):
+    def __init__(self):        
+        
         # ───────────────────────────────────────────────────────
         # Coarse/Fine toggle state
-        # False = fine tuning
-        # True = coarse tuning
+        # False = Fine
+        # True = Coarse
         # Default is fine; the button flips it, IRQ style.
+        self._coarse_toggle_pending = False
         self.CoarseEncoderStep = False
 
         # ───────────────────────────────────────────────────────
         # Structured namespace for all input devices
-        # Encapsulates buttons, encoders, and any future sensors
+        # Holds buttons, encoders, and any future sensors
         self.Inputs = self.InputDevices(self)
 
         # ───────────────────────────────────────────────────────
-        # Async Queue for hardware events
-        #   Any event that happens (button, encoder, toggle),
-        #   is pushed here to be handled by upper layers.
+        #Async Queue for hardware events
+        #	Any event that happens (button, encoder, toggle),
+        #	is pushed here to get handled by upper layers.
         #
-        # Asyncio helper :: stubby fallback for missing Queue (Safe For MicroPython.uasyncio)
+        #Asyncio Helper :: stubby fallback for missing Queue
+        #(Safe For MicroPython.uasyncio as asyncio)
         try:
             self._update_queue = asyncio.Queue()
         except AttributeError:
@@ -89,79 +95,69 @@ class HAL:
 
 
         # ───────────────────────────────────────────────────────
-        # Activity timer for “Poll Killer”
-        # Stops active polling if no input occurs after a while
+        #Timeout-Timer for Poll Killer
+        #Stops active polling(wasteful) if no input after a while(tunable)
         self._last_activity = time.ticks_ms()
         self._polling_active = True
         self._poll_sleep_ms = 200
         self._inactivity_limit_ms = 5000  # >5 seconds: end polling / go idle
-
+    
+    ##yet another irq handler/wrapper ::
+    def ToggleCoarse(self, pin=None):
+        "Called directly by encoder button IRQ"
+        self._coarse_toggle_pending = True
+        self.mark_activity()
     # ───────────────────────────────────────────────────────────────
     # Poll Killer / Activity Tracker
     def mark_activity(self):
         """
-        Notes user activity. 
-        Resets Poll-Killer timer.
-        Wakes HAL from idle polling if asleep.
-        Call this from any input event.
+        Notes input signal 
+        Resets Timeout Timer
+        Wakes HAL from idle cycle if asleep
+        Call this from any input;;
+            hal.mark_activity()
         """
         self._last_activity = time.ticks_ms()
         if not self._polling_active:
-            print("Poll Killer :: HAL Waking Poll Killer")
+            #print("Poll Killer :: HAL Waking Poll Killer")
             self._polling_active = True
-
-    # ───────────────────────────────────────────────────────────────
-        """
-        IRQ Handler for the rotary encoder's push button.
-        Flips coarse/fine state. Non-blocking, non-async.
-        Very lightweight; called directly by hardware IRQ.
-
-        Cycle:
-        0 = False   #Inactive (fine)
-        1 = True    #Flipped to coarse
-        0 = False   #Flipped back after another press
-        """
-        self.CoarseEncoderStep = not self.CoarseEncoderStep
-        # NO prints in IRQ; keep lightweight
-        self.mark_activity()
-        # Push event to async queue for main loop consumption
-        self._update_queue.put_nowait(("CoarseToggle", self.CoarseEncoderStep))
 
     # ───────────────────────────────────────────────────────────────
     # Minimal Polling / Watchdog Task
     async def monitor_inputs(self):
         """
-        Async background watcher task.
+        Async background watcher task
 
         Event-driven first, polling second.
-        Polling is extremely lightweight, only wakes when active
-        or after long inactivity to catch missed events.
+        Polling is extremely lightweight,
+            only wakes when active
+            or after long inactivity
+            to catch missed events
 
         Call from main loop:
             asyncio.create_task(hal.monitor_inputs())
 
         Roles:
-            - Detect edge events not caught by IRQs
-            - Debounce slow mechanical buttons gracefully
+            - Detect 'edge events' not caught by IRQs
+            - Debounce slow mechanical buttons
             - Feed updates into upper layers
             - Poll Killer: kills polling when idle
         """
-        print("Poll Killer :: Starting Monitor")
+        #print("Poll Killer :: Starting Monitor")
         while True:
             if self._polling_active:
-                # Heartbeat / debug placeholder
-                #print("Poll Killer :: Heart UP", self._polling_active) #Debug, DROWNS REPL
-
-                # Backup polling for devices without IRQ
-                # Example: button edge detection fallback
-                if self.Inputs.EncoderButton.was_pressed():
-                    print("Poll Killer :: Button Event Detected")
-                    self.mark_activity()
-                    await self._update_queue.put(("EncoderButton", True))
-
-                # Idle timeout check
-                if time.ticks_diff(time.ticks_ms(), self._last_activity) > self._inactivity_limit_ms:
-                    print("Poll Killer :: Killing Polls")
+                if self._coarse_toggle_pending:
+                    self.CoarseEncoderStep = not self.CoarseEncoderStep
+                    await self._update_queue.put(("CoarseToggle",
+                                                  self.CoarseEncoderStep))
+                    self._coarse_toggle_pending = False
+                
+                # print("Poll Killer :: Heart UP", self._polling_active) #Debug, DROWNS REPL
+                
+                # Idle Timeout Comparator
+                if time.ticks_diff(time.ticks_ms(),
+                                   self._last_activity) > self._inactivity_limit_ms:
+                    #print("Poll Killer :: Killing Polls")
                     self._polling_active = False
 
             else:
@@ -193,13 +189,12 @@ class HAL:
     class InputDevices:
         def __init__(self, hal):
             self.hal = hal
-
-
+            
             # Encoder Rotation Pins ::
-            self.EncoderPins = self.Encoder(left_pin=26, right_pin=14)
+            self.EncoderPins = self.Encoder(left_pin=14, right_pin=26)
             self.EncoderPins.enable_irq() #already stated in .Encoder
 
-            # Encoder push-button: toggles coarse/fine
+            # Encoder push-button: toggles Coarse/Fine
             self.EncoderButton = self.Button(pin=27, pull=Pin.PULL_UP)
             self.EncoderButton.pin.irq(
                 trigger=Pin.IRQ_FALLING,
@@ -317,6 +312,7 @@ class HAL:
 
 # ───────────────────────────────────────────────────────────────
 # GLOBAL HAL INSTANCE
-# All system modules can import and use:
+# All system modules can import and use ;;
 #     from HardwareLayer import hal
 hal = HAL()
+
